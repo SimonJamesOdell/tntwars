@@ -1083,7 +1083,7 @@ function renderLeaderboard() {
 
   const leaderboardMarkup = leaderboardEntries
     .map(
-      (entry, index) => `<li><span class="leaderboard-rank">${index + 1}.</span><strong>${entry.initials}</strong><span class="leaderboard-score">${entry.score}</span><span class="leaderboard-level">${entry.level}</span></li>`,
+      (entry, index) => `<li><span class="leaderboard-rank">${index + 1}.</span><strong>${entry.initials}</strong><span class="leaderboard-score">${entry.score}</span><span class="leaderboard-level">${entry.level ?? "&mdash;"}</span></li>`,
     )
     .join("");
 
@@ -1123,7 +1123,7 @@ function parseLeaderboardPayload(payload) {
       score: Number.isFinite(Number(entry?.score)) ? Math.floor(Number(entry.score)) : null,
       level: Number.isFinite(Number(entry?.level)) && Number(entry.level) >= 1
         ? Math.floor(Number(entry.level))
-        : 1,
+        : null,
     }))
     .filter((entry) => entry.initials.length > 0 && entry.score != null && entry.score >= 0)
     .sort((left, right) => right.score - left.score)
