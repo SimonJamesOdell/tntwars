@@ -8,6 +8,9 @@ const LEADERBOARD_MAX_ENTRIES = 10;
 const SCORE_UPDATE_MAX_DELTA = 8;
 const SCORE_UPDATE_MAX_PER_SECOND = 30;
 const SCORE_SESSION_IDLE_TTL_MS = 1000 * 60 * 60 * 24;
+const BACKFILL_BLOCKS_PER_PILE = 7 * 7 * 3;
+const BACKFILL_BLOCKS_DESTROYED_RATIO_PER_LEVEL = 0.75;
+const BACKFILL_MAX_ENEMY_PILES = 8;
 const INITIALS_REGEX = /^[A-Z]{1,4}$/;
 const BLOCKED_INITIALS = new Set([
   "ARSE",
@@ -114,6 +117,30 @@ function normalizeLevel(value) {
   return normalizeInteger(value, 1);
 }
 
+function estimateLevelFromScore(score) {
+  if (!Number.isFinite(score) || score <= 0) {
+    return 1;
+  }
+
+  let remainingScore = score;
+  let level = 1;
+
+  while (level < 10_000) {
+    const enemyPileCount = Math.min(level, BACKFILL_MAX_ENEMY_PILES);
+    const totalPiles = enemyPileCount + 1;
+    const expectedScoreForLevel = BACKFILL_BLOCKS_PER_PILE * totalPiles * BACKFILL_BLOCKS_DESTROYED_RATIO_PER_LEVEL;
+
+    if (remainingScore < expectedScoreForLevel) {
+      return level;
+    }
+
+    remainingScore -= expectedScoreForLevel;
+    level += 1;
+  }
+
+  return level;
+}
+
 function sanitizeLeaderboardEntries(entries) {
   if (!Array.isArray(entries)) {
     return [];
@@ -123,14 +150,15 @@ function sanitizeLeaderboardEntries(entries) {
     .map((entry) => {
       const initials = sanitizeInitials(entry?.initials);
       const score = normalizeScore(entry?.score);
-      const level = normalizeLevel(entry?.level) ?? 1;
       const createdAt = typeof entry?.createdAt === "string" ? entry.createdAt : new Date(0).toISOString();
 
       if (!isInitialsAllowed(initials) || score == null) {
         return null;
       }
 
-      return { initials, score, level, createdAt };
+      const level = normalizeLevel(entry?.level) ?? estimateLevelFromScore(score);
+
+      return { initials, score, level: level ?? null, createdAt };
     })
     .filter(Boolean)
     .sort((left, right) => {
