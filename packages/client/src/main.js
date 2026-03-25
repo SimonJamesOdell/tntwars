@@ -227,11 +227,24 @@ const sfxVolume = document.getElementById("sfx-volume");
 const musicMute = document.getElementById("music-mute");
 const volumeToggle = document.getElementById("volume-toggle");
 const volumeControls = document.getElementById("volume-controls");
+const infoToggle = document.getElementById("info-toggle");
+const infoModal = document.getElementById("info-modal");
+const infoModalClose = document.getElementById("info-modal-close");
 const musicState = document.getElementById("music-state");
 const fpsCounter = document.getElementById("fps-counter");
 const levelOverlay = document.getElementById("level-overlay");
 const pauseOverlay = document.getElementById("pause-overlay");
 const pauseAction = document.getElementById("pause-action");
+
+function setInfoModalOpen(open) {
+  if (!infoToggle || !infoModal) {
+    return;
+  }
+
+  infoToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  infoToggle.setAttribute("aria-label", open ? "Hide project information" : "Show project information");
+  infoModal.classList.toggle("hidden", !open);
+}
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -4097,6 +4110,27 @@ function initMusicControls() {
     });
   }
 
+  if (infoToggle && infoModal) {
+    infoToggle.addEventListener("click", () => {
+      const expanded = infoToggle.getAttribute("aria-expanded") !== "true";
+      setInfoModalOpen(expanded);
+    });
+  }
+
+  if (infoModalClose) {
+    infoModalClose.addEventListener("click", () => {
+      setInfoModalOpen(false);
+    });
+  }
+
+  if (infoModal) {
+    infoModal.addEventListener("click", (event) => {
+      if (event.target === infoModal) {
+        setInfoModalOpen(false);
+      }
+    });
+  }
+
   updateMusicUi();
 }
 
@@ -4427,6 +4461,12 @@ window.addEventListener("resize", () => {
 
 window.addEventListener("keydown", (event) => {
   ensureAudioUnlocked();
+
+  if (event.code === "Escape" && infoModal && !infoModal.classList.contains("hidden")) {
+    event.preventDefault();
+    setInfoModalOpen(false);
+    return;
+  }
 
   if (event.repeat) {
     return;
