@@ -216,7 +216,7 @@
 
       .leaderboard-list li {
         display: grid;
-        grid-template-columns: 18px 1fr auto auto;
+        grid-template-columns: 18px 1fr 56px 44px;
         align-items: center;
         gap: 8px;
         font-size: 12px;
@@ -226,7 +226,7 @@
       .leaderboard-columns {
         margin: 0 0 4px;
         display: grid;
-        grid-template-columns: 18px 1fr auto auto;
+        grid-template-columns: 18px 1fr 56px 44px;
         gap: 8px;
         font-size: 10px;
         letter-spacing: 0.1em;
@@ -279,6 +279,11 @@
         margin-top: 6px;
       }
 
+      .pause-help .pause-help-hint {
+        color: #ffd56f;
+        font-weight: 700;
+      }
+
       .brand-audio-buttons {
         position: absolute;
         top: 14px;
@@ -325,6 +330,86 @@
         font-size: 14px;
         line-height: 1;
         cursor: pointer;
+      }
+
+      .info-modal {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(2, 8, 12, 0.64);
+        backdrop-filter: blur(5px);
+        z-index: 40;
+      }
+
+      .info-modal.hidden {
+        display: none;
+      }
+
+      .info-modal-card {
+        width: min(560px, calc(100vw - 32px));
+        max-height: min(82vh, 720px);
+        overflow-y: auto;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: linear-gradient(180deg, rgba(8, 30, 40, 0.95), rgba(5, 20, 28, 0.95));
+        box-shadow: 0 20px 64px rgba(0, 0, 0, 0.52);
+        padding: 18px;
+        color: var(--ink);
+      }
+
+      .info-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .info-modal h3 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .info-modal-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(11, 40, 54, 0.9);
+        color: var(--ink);
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .info-modal-content {
+        margin-top: 12px;
+      }
+
+      .info-modal-content p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .info-modal-content p + p {
+        margin-top: 10px;
+      }
+
+      .info-modal-content a {
+        color: #8fddff;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(143, 221, 255, 0.45);
+      }
+
+      .info-modal-content a:hover {
+        color: #c9f1ff;
+        border-bottom-color: rgba(201, 241, 255, 0.75);
       }
 
       .fps-counter {
@@ -564,6 +649,7 @@
         <div class="brand-audio-buttons">
           <button id="music-mute" class="audio-icon-button" type="button" aria-label="Mute audio">🔊</button>
           <button id="volume-toggle" class="audio-icon-button" type="button" aria-label="Show volume sliders" aria-expanded="false" aria-controls="volume-controls">🎚</button>
+          <button id="info-toggle" class="audio-icon-button" type="button" aria-label="Show project information" aria-expanded="false" aria-controls="info-modal">?</button>
         </div>
         <div class="brand-metrics">
           <div class="metric-card">
@@ -582,6 +668,9 @@
           </p>
           <p>
             Controls: WASD move, Space jump, hold Left Click to throw TNT, Esc pause, R restart.
+          </p>
+          <p class="pause-help-hint">
+            HINT : only the lighter coloured blocks are destructable, so aim for those!
           </p>
         </div>
 
@@ -643,6 +732,26 @@
       <div class="fps-counter" id="fps-counter" aria-live="off">0 FPS</div>
 
       <div class="crosshair" aria-hidden="true"></div>
+    </div>
+
+    <div id="info-modal" class="info-modal hidden" role="dialog" aria-modal="true" aria-labelledby="info-modal-title">
+      <section class="info-modal-card">
+        <div class="info-modal-header">
+          <h3 id="info-modal-title">About TNTWARS</h3>
+          <button id="info-modal-close" class="info-modal-close" type="button" aria-label="Close project information">&times;</button>
+        </div>
+        <div class="info-modal-content">
+          <p>
+            TNTWARS is open-source and the codebase is 100% AI generated and maintained.
+          </p>
+          <p>
+            Gameplay is a last-player-standing arena: survive on your pile, arc TNT shots into enemy support blocks, and be the final pilot still standing.
+          </p>
+          <p>
+            Source code: <a href="https://github.com/SimonJamesOdell/tntwars" target="_blank" rel="noopener noreferrer">github.com/SimonJamesOdell/tntwars</a>
+          </p>
+        </div>
+      </section>
     </div>
     <script type="module" src="./src/main.js"></script>
   </body>

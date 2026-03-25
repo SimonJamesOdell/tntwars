@@ -2,6 +2,14 @@
 
 Multiplayer last-player-standing arena game built with JavaScript.
 
+## AI notice and warranty disclaimer
+
+This software is 100% generated and maintained by AI.
+
+This project is provided "as is" and "as available", with no guarantee or warranty of any kind, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, non-infringement, accuracy, reliability, availability, or security.
+
+By using this software, you acknowledge that you do so at your own risk.
+
 ## MVP rules
 
 - 2..N players per match.
