@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TNTWARS</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #eaf7ff;
+        --muted: #96b8c8;
+        --panel: rgba(5, 18, 26, 0.78);
+        --accent: #ff8a3d;
+        --accent-2: #5dd6ff;
+        --border: rgba(255, 255, 255, 0.1);
+      }
+
+      html,
+      body,
+      #app {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at top, rgba(180, 180, 180, 0.08), transparent 38%),
+          linear-gradient(180deg, #070707 0%, #020202 100%);
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        cursor: default;
+      }
+
+      body.game-active,
+      body.game-active canvas {
+        cursor: none;
+      }
+
+      body.game-stopped,
+      body.game-stopped canvas {
+        cursor: default;
+      }
+
+      .hud {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        color: var(--ink);
+      }
+
+      body.game-stopped .hud {
+        background: linear-gradient(180deg, rgba(4, 10, 16, 0.08), rgba(4, 10, 16, 0.28));
+      }
+
+      .panel {
+        position: fixed;
+        backdrop-filter: blur(14px);
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 16px 50px rgba(0, 0, 0, 0.28);
+      }
+
+      .brand {
+        top: 16px;
+        left: 16px;
+        width: min(340px, calc(100vw - 32px));
+        padding: 16px 18px;
+        pointer-events: auto;
+      }
+
+      .brand h1 {
+        margin: 0 0 4px;
+        font-size: 28px;
+        letter-spacing: 0.08em;
+      }
+
+      .brand-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .metric-card {
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(10, 26, 36, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .metric-label {
+        margin: 0 0 4px;
+        text-align: center;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .metric-value {
+        margin: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 42px;
+        line-height: 1;
+        font-weight: 700;
+        color: #e6b91f;
+        text-shadow:
+          0 -1px 0 rgba(255, 239, 168, 0.72),
+          0 1px 0 rgba(120, 78, 0, 0.55),
+          0 2px 0 rgba(86, 55, 0, 0.45),
+          0 8px 14px rgba(0, 0, 0, 0.42);
+      }
+
+      .status-line,
+      .control-line {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+
+      .status {
+        top: 16px;
+        right: 16px;
+        width: min(300px, calc(100vw - 32px));
+        padding: 16px 18px;
+        text-align: right;
+      }
+
+      .status strong {
+        color: var(--accent-2);
+      }
+
+      .mode-line {
+        margin: 0 0 8px;
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      body.game-stopped .mode-line strong {
+        color: var(--accent);
+      }
+
+      .controls {
+        left: 16px;
+        bottom: 16px;
+        width: min(420px, calc(100vw - 32px));
+        padding: 14px 18px;
+      }
+
+      body.game-active .controls {
+        display: none;
+      }
+
+      body.game-stopped .controls {
+        display: block;
+      }
+
+      body.game-active .music {
+        display: none;
+      }
+
+      body.game-stopped .music {
+        display: block;
+      }
+
+      .controls h2,
+      .status h2 {
+        margin: 0 0 8px;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .brand-music {
+        margin-top: 12px;
+        padding-top: 10px;
+      }
+
+      .leaderboard {
+        margin-top: 12px;
+        padding-top: 10px;
+      }
+
+      body.game-active .leaderboard {
+        display: none;
+      }
+
+      .leaderboard h2 {
+        margin: 0 0 6px;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .leaderboard-status {
+        margin: 0 0 8px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .leaderboard-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 4px;
+      }
+
+      .leaderboard-list li {
+        display: grid;
+        grid-template-columns: 18px 1fr auto auto;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #d6ecf8;
+      }
+
+      .leaderboard-columns {
+        margin: 0 0 4px;
+        display: grid;
+        grid-template-columns: 18px 1fr auto auto;
+        gap: 8px;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .leaderboard-rank {
+        color: var(--muted);
+      }
+
+      .leaderboard-score {
+        font-variant-numeric: tabular-nums;
+        justify-self: end;
+        color: #ffd56f;
+      }
+
+      .leaderboard-level {
+        min-width: 2ch;
+        font-variant-numeric: tabular-nums;
+        justify-self: end;
+        color: #9fe8ff;
+      }
+
+      .pause-help {
+        display: none;
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(12, 28, 38, 0.7);
+      }
+
+      body.game-active .pause-help {
+        display: none;
+      }
+
+      body.game-stopped .pause-help {
+        display: block;
+      }
+
+      .pause-help p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .pause-help p + p {
+        margin-top: 6px;
+      }
+
+      .brand-audio-buttons {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        pointer-events: auto;
+      }
+
+      .music-controls {
+        display: grid;
+        gap: 8px;
+      }
+
+      .music-controls.collapsed {
+        display: none;
+      }
+
+      .music-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .music-row label {
+        font-size: 12px;
+        color: var(--muted);
+        min-width: 52px;
+      }
+
+      .music-row input[type="range"] {
+        width: 100%;
+      }
+
+      .audio-icon-button {
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 1px solid var(--border);
+        background: rgba(12, 38, 50, 0.9);
+        color: var(--ink);
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .fps-counter {
+        position: fixed;
+        top: 10px;
+        right: 12px;
+        padding: 3px 7px;
+        border-radius: 999px;
+        background: rgba(5, 18, 26, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+        font-size: 11px;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.04em;
+        color: rgba(234, 247, 255, 0.9);
+      }
+
+      .banner {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(460px, calc(100vw - 32px));
+        padding: 22px 24px;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 160ms ease;
+      }
+
+      .banner.visible {
+        opacity: 1;
+      }
+
+      .banner h2 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      .banner.game-over h2 {
+        font-size: clamp(42px, 7vw, 84px);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+
+      .banner p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .banner-action {
+        margin-top: 10px;
+        padding: 12px 24px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: linear-gradient(180deg, #1f6e92, #114157);
+        color: #eaf7ff;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        pointer-events: auto;
+      }
+
+      .banner-action.hidden {
+        display: none;
+      }
+
+      .initials-form {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        align-items: center;
+        pointer-events: auto;
+      }
+
+      .initials-form.hidden {
+        display: none;
+      }
+
+      .initials-form:not(.hidden) + .banner-action {
+        margin-top: 16px;
+      }
+
+      .initials-form input {
+        width: 90px;
+        text-transform: uppercase;
+        text-align: center;
+        letter-spacing: 0.14em;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(8, 28, 38, 0.9);
+        color: #eaf7ff;
+        font-weight: 700;
+      }
+
+      .initials-form button {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: linear-gradient(180deg, #317fa3, #165067);
+        color: #eaf7ff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .initials-feedback {
+        margin-top: 8px;
+        min-height: 16px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .pause-overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+      }
+
+      .pause-overlay.visible {
+        display: flex;
+      }
+
+      .pause-overlay .pause-button {
+        pointer-events: auto;
+        padding: 14px 26px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: linear-gradient(180deg, #1f6e92, #114157);
+        color: #eaf7ff;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+      }
+
+      .pause-overlay .pause-button:hover {
+        filter: brightness(1.08);
+      }
+
+      .level-overlay {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        font-size: clamp(34px, 7vw, 72px);
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        white-space: nowrap;
+        text-transform: uppercase;
+        color: rgba(255, 232, 164, 0.94);
+        text-shadow:
+          0 0 20px rgba(255, 216, 112, 0.5),
+          0 10px 28px rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        transition: opacity 120ms linear;
+      }
+
+      .level-overlay.round-cleared {
+        font-size: clamp(24px, 5.2vw, 52px);
+        letter-spacing: 0.1em;
+      }
+
+      .crosshair {
+        position: fixed;
+        left: 50%;
+        top: 39%;
+        width: 22px;
+        height: 22px;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        transition: opacity 160ms ease;
+      }
+
+      body.game-stopped .crosshair {
+        opacity: 0;
+      }
+
+      .crosshair::before,
+      .crosshair::after {
+        content: "";
+        position: absolute;
+        background: rgba(234, 247, 255, 0.92);
+        box-shadow: 0 0 10px rgba(93, 214, 255, 0.45);
+      }
+
+      .crosshair::before {
+        left: 10px;
+        top: 2px;
+        width: 2px;
+        height: 18px;
+      }
+
+      .crosshair::after {
+        left: 2px;
+        top: 10px;
+        width: 18px;
+        height: 2px;
+      }
+
+      .accent {
+        color: var(--accent);
+      }
+
+      @media (max-width: 720px) {
+        .status {
+          top: auto;
+          right: 16px;
+          bottom: 140px;
+          text-align: left;
+        }
+
+        .brand h1 {
+          font-size: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div class="hud">
+      <section class="panel brand">
+        <h1>TNTWARS</h1>
+        <div class="brand-audio-buttons">
+          <button id="music-mute" class="audio-icon-button" type="button" aria-label="Mute audio">🔊</button>
+          <button id="volume-toggle" class="audio-icon-button" type="button" aria-label="Show volume sliders" aria-expanded="false" aria-controls="volume-controls">🎚</button>
+        </div>
+        <div class="brand-metrics">
+          <div class="metric-card">
+            <p class="metric-label">Score</p>
+            <p class="metric-value" id="score-value">0</p>
+          </div>
+          <div class="metric-card">
+            <p class="metric-label">High Score</p>
+            <p class="metric-value" id="high-score-value">0</p>
+          </div>
+        </div>
+
+        <div class="pause-help" id="pause-help">
+          <p>
+            Survive while enemy piles collapse around you. Arc TNT shots to expose and destroy enemy blocks before they do the same to you.
+          </p>
+          <p>
+            Controls: WASD move, Space jump, hold Left Click to throw TNT, Esc pause, R restart.
+          </p>
+        </div>
+
+        <div class="brand-music">
+          <div id="volume-controls" class="music-controls collapsed">
+            <div class="music-row">
+              <label for="all-volume">All</label>
+              <input id="all-volume" type="range" min="0" max="100" value="100" />
+            </div>
+            <div class="music-row">
+              <label for="music-volume">Music</label>
+              <input id="music-volume" type="range" min="0" max="100" value="100" />
+            </div>
+            <div class="music-row">
+              <label for="sfx-volume">SFX</label>
+              <input id="sfx-volume" type="range" min="0" max="100" value="100" />
+            </div>
+          </div>
+        </div>
+
+        <div class="leaderboard">
+          <h2>Global Top 10</h2>
+          <p id="leaderboard-status" class="leaderboard-status">Loading leaderboard...</p>
+          <div class="leaderboard-columns" aria-hidden="true">
+            <span></span>
+            <span>Pilot</span>
+            <span>Score</span>
+            <span>Level</span>
+          </div>
+          <ol id="leaderboard-list" class="leaderboard-list"></ol>
+        </div>
+      </section>
+
+      <section class="panel banner" id="banner">
+        <h2 id="banner-title"></h2>
+        <p id="banner-text"></p>
+        <form id="initials-form" class="initials-form hidden" autocomplete="off">
+          <input
+            id="initials-input"
+            name="initials"
+            type="text"
+            inputmode="text"
+            maxlength="4"
+            placeholder="ABCD"
+            aria-label="Leaderboard initials"
+          />
+          <button id="initials-submit" type="submit">Submit Score</button>
+        </form>
+        <button id="banner-action" class="banner-action hidden" type="button">Play Again</button>
+        <p id="initials-feedback" class="initials-feedback"></p>
+      </section>
+
+      <div class="pause-overlay" id="pause-overlay" aria-live="polite">
+        <button id="pause-action" class="pause-button" type="button">Start Game</button>
+      </div>
+
+      <div class="level-overlay" id="level-overlay" aria-live="polite"></div>
+
+      <div class="fps-counter" id="fps-counter" aria-live="off">0 FPS</div>
+
+      <div class="crosshair" aria-hidden="true"></div>
+    </div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

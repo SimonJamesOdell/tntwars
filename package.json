@@ -1,0 +1,19 @@
+{
+  "name": "tntwars",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TNTWARS multiplayer WebGL game monorepo",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm run test -w @tntwars/shared",
+    "test:server": "npm run test -w @tntwars/server",
+    "test:watch": "npm run test:watch -w @tntwars/shared",
+    "dev:client": "npm run dev -w @tntwars/client",
+    "dev:server": "npm run dev -w @tntwars/server"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
