@@ -4605,9 +4605,8 @@ if (pauseAction) {
 
 if (bannerAction) {
   bannerAction.addEventListener("click", () => {
-    // If the initials form is visible, the player is mid-entry — ignore accidental clicks.
-    // They can still press R to force-restart.
-    if (initialsForm && !initialsForm.classList.contains("hidden")) {
+    // Keep restart blocked only while a submission is in-flight.
+    if (leaderboardSubmitInFlight) {
       return;
     }
     resetGame();
