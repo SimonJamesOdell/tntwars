@@ -12,10 +12,9 @@ By using this software, you acknowledge that you do so at your own risk.
 
 ## MVP rules
 
-- 2..N players per match.
+- 2..8 players per match.
 - Each player spawns on their own pile in a grid layout.
 - Pile spacing is intentionally non-jumpable.
-- Players place blocks and throw TNT to destroy enemy support.
 - Last player standing wins.
 - Simultaneous final eliminations result in a draw.
 
